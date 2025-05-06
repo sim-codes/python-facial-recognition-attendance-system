@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Face Setup - FaceAttend{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold mb-4 text-center">Set Up Face Recognition</h1>
+        <p class="text-gray-600 mb-6 text-center">
+            We need to scan your face to set up the facial recognition system. Please ensure you are in a well-lit area and look directly at the camera.
+        </p>
+
+        <div class="mb-6">
+            <div id="camera-container" class="bg-gray-200 rounded-lg overflow-hidden mx-auto w-full max-w-sm">
+                <video id="video" class="w-full" autoplay playsinline></video>
+                <canvas id="canvas" class="hidden"></canvas>
+            </div>
+        </div>
+
+        <div class="flex flex-col space-y-4 items-center">
+            <button id="capture-btn" class="bg-blue-600 text-white py-2 px-6 rounded-lg shadow hover:bg-blue-700">
+                Capture Face Image
+            </button>
+            <p id="status-message" class="text-sm text-gray-600"></p>
+            <div id="loading-spinner" class="loading-spinner hidden"></div>
+        </div>
+
+        <form id="face-form" method="post" enctype="multipart/form-data" class="hidden">
+            {% csrf_token %}
+            {{ form|crispy }}
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        const statusMessage = document.getElementById('status-message');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        let stream;
+
+        // Start video stream
+        async function startVideo() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                statusMessage.textContent = 'Camera ready. Position your face in the frame.';
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                statusMessage.textContent = 'Error accessing camera. Please make sure your camera is connected and you have given permission to use it.';
+                statusMessage.classList.add('text-red-500');
+            }
+        }
+
+        startVideo();
+
+        // Capture image and send to server
+        captureBtn.addEventListener('click', function() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert to base64
+            const imageData = canvas.toDataURL('image/jpeg');
+            
+            // Show loading indicator
+            captureBtn.disabled = true;
+            loadingSpinner.classList.remove('hidden');
+            statusMessage.textContent = 'Processing...';
+
+            // Send image to server
+            fetch('{% url "save_face" %}', {
+                method: 'POST',
+                body: JSON.stringify({ image: imageData }),
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingSpinner.classList.add('hidden');
+                
+                if (data.status === 'success') {
+                    statusMessage.textContent = 'Face verification set up successfully!';
+                    statusMessage.classList.add('text-green-500');
+                    
+                    // Stop the video stream
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                    
+                    // Redirect to dashboard after a delay
+                    setTimeout(() => {
+                        window.location.href = '{% url "dashboard" %}';
+                    }, 2000);
+                } else {
+                    captureBtn.disabled = false;
+                    statusMessage.textContent = 'Error: ' + data.message;
+                    statusMessage.classList.add('text-red-500');
+                }
+            })
+            .catch(error => {
+                loadingSpinner.classList.add('hidden');
+                captureBtn.disabled = false;
+                statusMessage.textContent = 'Error: ' + error.message;
+                statusMessage.classList.add('text-red-500');
+            });
+        });
+    });
+</script>
+{% endblock %}

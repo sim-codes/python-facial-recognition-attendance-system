@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - FaceAttend{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold mb-6">User Profile</h1>
+        
+        <div class="flex flex-col md:flex-row gap-8">
+            <div class="md:w-1/3">
+                <div class="bg-gray-100 rounded-lg p-4 text-center">
+                    {% if user.face_image %}
+                        <img src="{{ user.face_image.url }}" alt="Profile photo" class="w-32 h-32 rounded-full mx-auto object-cover">
+                    {% else %}
+                        <div class="w-32 h-32 rounded-full mx-auto bg-blue-200 flex items-center justify-center">
+                            <span class="text-blue-600 text-4xl font-bold">{{ user.username|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    <h2 class="text-xl font-semibold mt-4">{{ user.get_full_name|default:user.username }}</h2>
+                    <p class="text-gray-600">{{ user.get_user_type_display }}</p>
+                </div>
+                
+                {% if not user.face_encoding %}
+                    <div class="mt-4">
+                        <a href="{% url 'face_setup' %}" class="block w-full py-2 px-4 bg-blue-600 text-white text-center rounded hover:bg-blue-700">
+                            Set Up Face Recognition
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="md:w-2/3">
+                <h2 class="text-xl font-semibold mb-4">Account Information</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Username</label>
+                        <p class="bg-gray-50 py-2 px-3 rounded">{{ user.username }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Email</label>
+                        <p class="bg-gray-50 py-2 px-3 rounded">{{ user.email }}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">First Name</label>
+                            <p class="bg-gray-50 py-2 px-3 rounded">{{ user.first_name|default:"--" }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Last Name</label>
+                            <p class="bg-gray-50 py-2 px-3 rounded">{{ user.last_name|default:"--" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">User Type</label>
+                        <p class="bg-gray-50 py-2 px-3 rounded">{{ user.get_user_type_display }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Face Recognition</label>
+                        <p class="bg-gray-50 py-2 px-3 rounded">
+                            {% if user.face_encoding %}
+                                <span class="text-green-600">✓ Set up complete</span>
+                            {% else %}
+                                <span class="text-red-600">✗ Not set up</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                        <a href="{% url 'dashboard' %}" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

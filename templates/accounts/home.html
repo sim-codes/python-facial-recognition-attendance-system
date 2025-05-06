@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="bg-gradient-to-r from-blue-800 to-blue-600 text-white">
+    <div class="container mx-auto px-4 py-16 md:py-24">
+        <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="md:w-1/2 mb-8 md:mb-0">
+                <h1 class="text-4xl md:text-5xl font-bold mb-6">Student Attendance System with Face Recognition</h1>
+                <p class="text-lg md:text-xl mb-8">Secure, efficient, and contactless attendance tracking for educational institutions.</p>
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                    <a href="{% url 'register' %}" class="bg-white text-blue-600 font-bold py-3 px-6 rounded-lg shadow hover:bg-gray-100 text-center">Get Started</a>
+                    <a href="{% url 'login' %}" class="bg-transparent border-2 border-white text-white font-bold py-3 px-6 rounded-lg hover:bg-white hover:bg-opacity-10 text-center">Login</a>
+                </div>
+            </div>
+            <div class="md:w-1/2">
+                <img src="https://images.unsplash.com/photo-1521424159246-e4a66f267e4b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="Students in classroom" class="rounded-lg shadow-lg">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-16">
+    <h2 class="text-3xl font-bold text-center mb-12">Key Features</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="text-blue-600 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Facial Recognition</h3>
+            <p class="text-gray-600">Secure attendance verification using advanced facial recognition technology.</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="text-blue-600 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Real-time Reports</h3>
+            <p class="text-gray-600">Generate instant attendance reports and analytics for better decision making.</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="text-blue-600 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Mobile Friendly</h3>
+            <p class="text-gray-600">Access the system from any device with a camera and internet connection.</p>
+        </div>
+    </div>
+</div>
+
+<div class="bg-gray-100 py-16">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">How It Works</h2>
+        
+        <div class="flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-12">
+            <div class="bg-white p-6 rounded-lg shadow-md w-full md:w-1/4 text-center">
+                <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                    <span class="font-bold text-xl">1</span>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Register</h3>
+                <p class="text-gray-600">Create an account and set up your face verification.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md w-full md:w-1/4 text-center">
+                <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                    <span class="font-bold text-xl">2</span>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Verify</h3>
+                <p class="text-gray-600">Use your camera to verify your identity before marking attendance.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md w-full md:w-1/4 text-center">
+                <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                    <span class="font-bold text-xl">3</span>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Track</h3>
+                <p class="text-gray-600">Access your attendance history and reports anytime, anywhere.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

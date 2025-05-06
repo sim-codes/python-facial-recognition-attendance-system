@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Sessions - FaceAttend{% endblock %}
+
+{% block content %}
+<div class="bg-gradient-to-r from-blue-800 to-blue-600 text-white">
+    <div class="container mx-auto px-4 py-6">
+        <h1 class="text-2xl md:text-3xl font-bold">Sessions</h1>
+        <p class="mt-2">Manage all your course sessions</p>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-xl font-semibold">All Sessions</h2>
+            <p class="text-gray-600">Sessions across all your courses</p>
+        </div>
+        
+        <a href="{% url 'add_session' %}" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add New Session
+        </a>
+    </div>
+    
+    {% if sessions %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                            <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                            <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Attendance</th>
+                            <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for session in sessions %}
+                            <tr>
+                                <td class="py-3 px-4 text-sm">{{ session.date }}</td>
+                                <td class="py-3 px-4 text-sm">
+                                    <div class="font-medium">{{ session.course.code }}</div>
+                                    <div class="text-xs text-gray-500">{{ session.course.name }}</div>
+                                </td>
+                                <td class="py-3 px-4 text-sm">{{ session.start_time }} - {{ session.end_time }}</td>
+                                <td class="py-3 px-4 text-sm">
+                                    {% with attendance_count=session.attendances.count student_count=session.course.students.count %}
+                                        <div class="flex items-center">
+                                            <span class="mr-2">{{ attendance_count }}/{{ student_count }}</span>
+                                            <div class="w-16 bg-gray-200 rounded-full h-2.5">
+                                                {% if student_count > 0 %}
+                                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ attendance_count|floatformat:0 }}%"></div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endwith %}
+                                </td>
+                                <td class="py-3 px-4 text-sm">
+                                    {% if session.date < today %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Past</span>
+                                    {% elif session.date == today and session.end_time < now %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Ended</span>
+                                    {% elif session.date == today and session.start_time <= now and session.end_time >= now %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">In Progress</span>
+                                    {% else %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Upcoming</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4 text-sm text-right">
+                                    <a href="{% url 'session_detail' session.id %}" class="text-blue-600 hover:text-blue-800">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">
+                            Showing <span class="font-medium">{{ sessions|length }}</span> sessions
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Previous</span>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                            <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                1
+                            </a>
+                            <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                2
+                            </a>
+                            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Next</span>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="bg-white rounded-lg shadow-md p-8 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-1">No sessions found</h3>
+            <p class="text-gray-500 mb-6">You haven't created any sessions yet.</p>
+            
+            <a href="{% url 'add_session' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Your First Session
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

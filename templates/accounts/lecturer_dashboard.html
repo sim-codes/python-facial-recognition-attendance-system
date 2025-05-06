@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Lecturer Dashboard - FaceAttend{% endblock %}
+
+{% block content %}
+<div class="bg-gradient-to-r from-blue-800 to-blue-600 text-white">
+    <div class="container mx-auto px-4 py-6">
+        <h1 class="text-2xl md:text-3xl font-bold">Lecturer Dashboard</h1>
+        <p class="mt-2">Welcome, {{ user.first_name|default:user.username }}! Manage your courses and student attendance here.</p>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Quick Actions Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+            <div class="space-y-3">
+                <a href="{% url 'add_course' %}" class="flex items-center p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add New Course
+                </a>
+                <a href="{% url 'add_session' %}" class="flex items-center p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Schedule New Session
+                </a>
+                <a href="{% url 'attendance_reports' %}" class="flex items-center p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    View Attendance Reports
+                </a>
+            </div>
+        </div>
+        
+        <!-- My Courses Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">My Courses</h2>
+            <div class="space-y-3">
+                {% for course in user.courses.all %}
+                    <a href="{% url 'course_detail' course.id %}" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                        <h3 class="font-medium">{{ course.code }} - {{ course.name }}</h3>
+                        <div class="flex justify-between mt-1 text-sm">
+                            <span class="text-gray-600">{{ course.students.count }} students</span>
+                            <span class="text-gray-600">{{ course.sessions.count }} sessions</span>
+                        </div>
+                    </a>
+                {% empty %}
+                    <p class="text-gray-500 italic">You haven't added any courses yet.</p>
+                {% endfor %}
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'course_list' %}" class="text-blue-600 hover:text-blue-800 text-sm">View all courses →</a>
+            </div>
+        </div>
+        
+        <!-- Upcoming Sessions Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Upcoming Sessions</h2>
+            <div class="space-y-3">
+                {% for session in user.courses.all.0.sessions.all|slice:":3" %}
+                    <a href="{% url 'session_detail' session.id %}" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                        <h3 class="font-medium">{{ session.course.code }}</h3>
+                        <div class="flex justify-between mt-1 text-sm">
+                            <span class="text-gray-600">{{ session.date }}</span>
+                            <span class="text-gray-600">{{ session.start_time }} - {{ session.end_time }}</span>
+                        </div>
+                    </a>
+                {% empty %}
+                    <p class="text-gray-500 italic">No upcoming sessions scheduled.</p>
+                {% endfor %}
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'session_list' %}" class="text-blue-600 hover:text-blue-800 text-sm">View all sessions →</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Recent Attendance Activity</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                        <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                        <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                        <th class="py-3 px-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Verification</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for attendance in user.courses.all.0.sessions.all.0.attendances.all|slice:":5" %}
+                        <tr>
+                            <td class="py-3 px-4 text-sm">{{ attendance.session.date }}</td>
+                            <td class="py-3 px-4 text-sm">{{ attendance.session.course.code }}</td>
+                            <td class="py-3 px-4 text-sm">{{ attendance.student.get_full_name|default:attendance.student.username }}</td>
+                            <td class="py-3 px-4 text-sm">{{ attendance.timestamp|time }}</td>
+                            <td class="py-3 px-4 text-sm">
+                                {% if attendance.face_verified %}
+                                    <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Face Verified</span>
+                                {% else %}
+                                    <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Manual</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-4 px-4 text-center text-gray-500 italic">No recent attendance activity.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edit Course - {{ course.code }}{% endblock %}
+
+{% block content %}
+<div class="bg-gradient-to-r from-blue-800 to-blue-600 text-white">
+    <div class="container mx-auto px-4 py-6">
+        <h1 class="text-2xl md:text-3xl font-bold">Edit Course</h1>
+        <p class="mt-2">{{ course.code }} - {{ course.name }}</p>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {{ form|crispy }}
+            
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'course_detail' course.id %}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

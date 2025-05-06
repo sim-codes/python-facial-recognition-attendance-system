@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FaceAttend - Attendance with Facial Recognition{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <header class="bg-blue-600 text-white">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="{% url 'home' %}" class="font-bold text-xl md:text-2xl">
+                <span class="text-white">Face</span><span class="text-blue-200">Attend</span>
+            </a>
+            
+            <nav class="hidden md:flex space-x-6">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="hover:underline">Dashboard</a>
+                    {% if user.is_student %}
+                        <a href="{% url 'mark_attendance' %}" class="hover:underline">Mark Attendance</a>
+                        <a href="{% url 'attendance_history' %}" class="hover:underline">Attendance History</a>
+                    {% elif user.is_lecturer %}
+                        <a href="{% url 'course_list' %}" class="hover:underline">My Courses</a>
+                        <a href="{% url 'session_list' %}" class="hover:underline">Sessions</a>
+                        <a href="{% url 'attendance_reports' %}" class="hover:underline">Reports</a>
+                    {% endif %}
+                    <a href="{% url 'profile' %}" class="hover:underline">Profile</a>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="text-white hover:underline">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="hover:underline">Login</a>
+                    <a href="{% url 'register' %}" class="hover:underline">Register</a>
+                {% endif %}
+            </nav>
+            
+            <button id="mobile-menu-button" class="md:hidden text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-blue-700 pb-4">
+            <div class="container mx-auto px-4 flex flex-col space-y-2">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="text-white py-2 hover:bg-blue-800 px-2 rounded">Dashboard</a>
+                    {% if user.is_student %}
+                        <a href="{% url 'mark_attendance' %}" class="text-white py-2 hover:bg-blue-800 px-2 rounded">Mark Attendance</a>
+                        <a href="{% url 'attendance_history' %}" class="text-white py-2 hover:bg-blue-800 px-2 rounded">Attendance History</a>
+                    {% elif user.is_lecturer %}
+                        <a href="{% url 'course_list' %}" class="text-white py-2 hover:bg-blue-800 px-2 rounded">My Courses</a>
+                        <a href="{% url 'session_list' %}" class="text-white py-2 hover:bg-blue-800 px-2 rounded">Sessions</a>
+                        <a href="{% url 'attendance_reports' %}" class="text-white py-2 hover:bg-blue-800 px-2 rounded">Reports</a>
+                    {% endif %}
+                    <a href="{% url 'profile' %}" class="text-white py-2 hover:bg-blue-800 px-2 rounded">Profile</a>
+
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="text-white py-2 hover:bg-blue-800 px-2 rounded">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-white py-2 hover:bg-blue-800 px-2 rounded">Login</a>
+                    <a href="{% url 'register' %}" class="text-white py-2 hover:bg-blue-800 px-2 rounded">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p class="text-sm">© 2025 FaceAttend - Student Attendance System with Facial Recognition</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-300 hover:text-white">Privacy Policy</a>
+                    <a href="#" class="text-gray-300 hover:text-white">Terms of Service</a>
+                    <a href="#" class="text-gray-300 hover:text-white">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Close alerts
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeButtons = document.querySelectorAll('.alert-close');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    this.parentElement.style.display = 'none';
+                });
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

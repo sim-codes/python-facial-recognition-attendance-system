@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login - FaceAttend{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
+        
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {{ form|crispy }}
+            
+            <div class="flex justify-between items-center mt-6">
+                <p class="text-sm text-gray-600">
+                    Don't have an account? <a href="{% url 'register' %}" class="text-blue-600 hover:underline">Register</a>
+                </p>
+                <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">Login</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
