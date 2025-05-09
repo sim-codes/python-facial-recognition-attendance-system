@@ -49,13 +49,11 @@
                                 <div>
                                     <p class="text-gray-600">Avg. Attendance</p>
                                     <p class="font-medium">
-                                        {% with total_students=course.students.count %}
-                                            {% if total_students > 0 %}
-                                                75%
-                                            {% else %}
-                                                N/A
-                                            {% endif %}
-                                        {% endwith %}
+                                        {% if course.students.count > 0 and course.sessions.count > 0 %}
+                                            {{ course.average_attendance_percentage }}%
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
                                     </p>
                                 </div>
                                 <div>

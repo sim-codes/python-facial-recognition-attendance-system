@@ -24,9 +24,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-9y0@m+2$=_1l!40c@1j!k$mii6)l*ke)v#olmkc%tj+ekvt^l4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Read DEBUG setting from environment variable DJANGO_DEBUG (e.g., "True" or "False")
+# Defaults to False if the environment variable is not set.
+DEBUG = str(os.environ.get('DJANGO_DEBUG', 'False')).lower() == 'true'
 
-ALLOWED_HOSTS = []
+# IMPORTANT: For production, you MUST set the DJANGO_ALLOWED_HOSTS environment variable
+# to a comma-separated list of your valid hostnames (e.g., "yourdomain.com,www.yourdomain.com").
+# Using ['*'] without DJANGO_ALLOWED_HOSTS is insecure and only suitable for local development or initial testing.
+_allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS')
+if _allowed_hosts_env:
+    ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',')]
+elif DEBUG:
+    # If in DEBUG mode and DJANGO_ALLOWED_HOSTS is not set, allow common development hosts.
+    # The '*' is for convenience when running in Docker locally.
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+else:
+    # If not in DEBUG mode and DJANGO_ALLOWED_HOSTS is not set, this list MUST NOT be empty.
+    # Leaving it empty here will cause Django to raise an ImproperlyConfigured exception,
+    # which is a good behavior as it forces the user to set DJANGO_ALLOWED_HOSTS in production.
+    ALLOWED_HOSTS = []
 
 
 # Application definition

@@ -57,9 +57,9 @@
                             <h3 class="text-sm font-medium text-gray-500 mb-1">Average Attendance</h3>
                             <div class="flex items-center">
                                 <div class="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: 75%"></div>
+                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ selected_course.average_attendance_percentage }}%"></div>
                                 </div>
-                                <span>75%</span>
+                                <span>{{ selected_course.average_attendance_percentage }}%</span>
                             </div>
                         </div>
                     </div>

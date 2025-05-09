@@ -219,8 +219,14 @@ def edit_course(request, course_id):
 def session_list(request):
     sessions = Session.objects.filter(course__lecturer=request.user).order_by('-date', '-start_time')
     
+    current_tz = timezone.get_current_timezone()
+    today = timezone.now().astimezone(current_tz).date()
+    now = timezone.now().astimezone(current_tz).time()
+    
     context = {
         'sessions': sessions,
+        'today': today,
+        'now': now,
     }
     
     return render(request, 'attendance/session_list.html', context)
@@ -310,4 +316,3 @@ def attendance_reports(request):
     }
     
     return render(request, 'attendance/attendance_reports.html', context)
-    

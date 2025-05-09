@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.db.models import Count
 
 class Course(models.Model):
     name = models.CharField(max_length=100)
@@ -18,6 +19,22 @@ class Course(models.Model):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+
+    def average_attendance_percentage(self):
+        num_students = self.students.count()
+        num_sessions = self.sessions.count()
+
+        if num_students == 0 or num_sessions == 0:
+            return 0
+
+        total_possible_attendances = num_students * num_sessions
+        total_actual_attendances = Attendance.objects.filter(session__course=self).count()
+        
+        if total_possible_attendances == 0:
+            return 0
+        
+        percentage = (total_actual_attendances / total_possible_attendances) * 100
+        return round(percentage)
 
 class Session(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='sessions')

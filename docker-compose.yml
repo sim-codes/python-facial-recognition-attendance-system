@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DJANGO_SETTINGS_MODULE=core.settings
+      - DJANGO_DEBUG=True # Set to False in production
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 # Add your production domain here
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=yourdbname
+      - POSTGRES_USER=youruser
+      - POSTGRES_PASSWORD=yourpassword
+
+volumes:
+  postgres_data:
