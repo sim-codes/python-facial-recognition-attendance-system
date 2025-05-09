@@ -119,15 +119,15 @@
                 </div>
                 
                 <div class="mb-3 relative">
-                    <input type="text" placeholder="Search students..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="studentSearch" placeholder="Search students..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
                 
-                <div class="space-y-2 max-h-[32rem] overflow-y-auto">
+                <div id="studentsList" class="space-y-3 max-h-[32rem] overflow-y-auto">
                     {% for student_stat in student_stats %}
-                        <div class="border border-gray-200 rounded-md p-3 hover:bg-gray-50">
+                        <div class="student-item border border-gray-200 rounded-md p-3 hover:bg-gray-50">
                             <div class="flex justify-between">
                                 <div>
                                     <h3 class="font-medium">{{ student_stat.student.get_full_name|default:student_stat.student.username }}</h3>
@@ -149,4 +149,47 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('studentSearch');
+    const studentsList = document.getElementById('studentsList');
+    const studentItems = studentsList.querySelectorAll('.student-item');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let foundStudents = 0;
+
+            studentItems.forEach(function(item) {
+                const studentName = item.querySelector('h3').textContent.toLowerCase();
+                const studentEmail = item.querySelector('p').textContent.toLowerCase();
+                
+                if (studentName.includes(searchTerm) || studentEmail.includes(searchTerm)) {
+                    item.style.display = '';
+                    foundStudents++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            const noResultsMessage = studentsList.querySelector('.no-results-message');
+            if (foundStudents === 0 && searchTerm !== '') {
+                if (!noResultsMessage) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'text-center py-4 text-gray-500 no-results-message';
+                    messageDiv.textContent = 'No students found matching your search.';
+                    studentsList.appendChild(messageDiv);
+                }
+            } else {
+                if (noResultsMessage) {
+                    noResultsMessage.remove();
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
