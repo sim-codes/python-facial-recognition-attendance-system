@@ -12,21 +12,41 @@
 
 <div class="container mx-auto px-4 py-8">
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Course Selection</h2>
+        <h2 class="text-xl font-semibold mb-4">Report Filters</h2>
         
-        <form method="get" class="flex items-end space-x-4">
-            <div class="flex-grow">
-                <label for="course" class="block text-sm font-medium text-gray-700 mb-1">Select Course</label>
-                <select id="course" name="course" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">All Courses</option>
-                    {% for course in courses %}
-                        <option value="{{ course.id }}" {% if selected_course and selected_course.id == course.id %}selected{% endif %}>{{ course.code }} - {{ course.name }}</option>
-                    {% endfor %}
-                </select>
+        <form method="get" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="course" class="block text-sm font-medium text-gray-700 mb-1">Select Course</label>
+                    <select id="course" name="course" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Courses (Overview)</option>
+                        {% for c in courses %}
+                            <option value="{{ c.id }}" {% if selected_course and selected_course.id == c.id %}selected{% endif %}>{{ c.code }} - {{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="student_query" class="block text-sm font-medium text-gray-700 mb-1">Filter by Student (Name/Email)</label>
+                    <input type="text" name="student_query" id="student_query" value="{{ request.GET.student_query|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., John Doe or john@example.com">
+                </div>
+                <div>
+                    <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    <input type="date" name="start_date" id="start_date" value="{{ request.GET.start_date|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <input type="date" name="end_date" id="end_date" value="{{ request.GET.end_date|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
             </div>
-            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-                Generate Report
-            </button>
+            
+            <div class="flex items-center justify-end space-x-4">
+                <button type="submit" name="generate_report" value="1" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                    Generate Report
+                </button>
+                <button type="submit" name="export_csv" value="1" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
+                    Export CSV
+                </button>
+            </div>
         </form>
     </div>
     
@@ -44,22 +64,22 @@
                         </div>
                         
                         <div>
-                            <h3 class="text-sm font-medium text-gray-500 mb-1">Total Students</h3>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Total Students Enrolled</h3>
                             <p class="font-medium">{{ selected_course.students.count }}</p>
                         </div>
                         
                         <div>
-                            <h3 class="text-sm font-medium text-gray-500 mb-1">Total Sessions</h3>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Total Sessions (in filtered range)</h3>
                             <p class="font-medium">{{ sessions.count }}</p>
                         </div>
                         
                         <div>
-                            <h3 class="text-sm font-medium text-gray-500 mb-1">Average Attendance</h3>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Average Attendance (for filtered sessions & students)</h3>
                             <div class="flex items-center">
                                 <div class="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ selected_course.average_attendance_percentage }}%"></div>
+                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ course_average_attendance_percentage|default:0 }}%"></div>
                                 </div>
-                                <span>{{ selected_course.average_attendance_percentage }}%</span>
+                                <span>{{ course_average_attendance_percentage|default:0 }}%</span>
                             </div>
                         </div>
                     </div>
@@ -70,16 +90,8 @@
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold">Student Attendance</h2>
-                        
-                        <div class="flex space-x-2">
-                            <button class="text-sm border border-gray-300 rounded px-3 py-1 hover:bg-gray-100">
-                                Filter
-                            </button>
-                            <button class="text-sm border border-gray-300 rounded px-3 py-1 hover:bg-gray-100">
-                                Export CSV
-                            </button>
-                        </div>
+                        <h2 class="text-xl font-semibold">Student Attendance Details</h2>
+                        <!-- Removed old Filter/Export buttons from here -->
                     </div>
                     
                     <div class="overflow-x-auto">
@@ -93,24 +105,24 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
-                                {% for student in student_attendance %}
+                                {% for student_stat in student_attendance %}
                                     <tr>
-                                        <td class="py-3 px-4 text-sm">{{ student.student.get_full_name|default:student.student.username }}</td>
-                                        <td class="py-3 px-4 text-sm">{{ student.student.email }}</td>
-                                        <td class="py-3 px-4 text-sm">{{ student.attended }}/{{ student.total }}</td>
+                                        <td class="py-3 px-4 text-sm">{{ student_stat.student.get_full_name|default:student_stat.student.username }}</td>
+                                        <td class="py-3 px-4 text-sm">{{ student_stat.student.email }}</td>
+                                        <td class="py-3 px-4 text-sm">{{ student_stat.attended }}/{{ student_stat.total_sessions_for_student }}</td>
                                         <td class="py-3 px-4 text-sm">
                                             <div class="flex items-center">
                                                 <div class="w-24 bg-gray-200 rounded-full h-2.5 mr-2">
-                                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ student.rate }}%"></div>
+                                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ student_stat.rate }}%"></div>
                                                 </div>
-                                                <span>{{ student.rate|floatformat:0 }}%</span>
+                                                <span>{{ student_stat.rate|floatformat:0 }}%</span>
                                             </div>
                                         </td>
                                     </tr>
                                 {% empty %}
                                     <tr>
                                         <td colspan="4" class="py-4 text-center text-gray-500 italic">
-                                            No student attendance data available.
+                                            No student attendance data available for the selected filters.
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -123,7 +135,7 @@
             <!-- Session List -->
             <div class="lg:col-span-3">
                 <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-semibold mb-4">Sessions</h2>
+                    <h2 class="text-xl font-semibold mb-4">Filtered Sessions ({{ sessions.count }})</h2>
                     
                     <div class="overflow-x-auto">
                         <table class="w-full border-collapse">
@@ -146,7 +158,9 @@
                                                     <span class="mr-2">{{ attendance_count }}/{{ student_count }}</span>
                                                     <div class="w-24 bg-gray-200 rounded-full h-2.5">
                                                         {% if student_count > 0 %}
-                                                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ attendance_count|floatformat:0 }}%"></div>
+                                                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {% widthratio attendance_count student_count 100 %}%"></div>
+                                                        {% else %}
+                                                             <div class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
                                                         {% endif %}
                                                     </div>
                                                 </div>
@@ -161,7 +175,7 @@
                                 {% empty %}
                                     <tr>
                                         <td colspan="4" class="py-4 text-center text-gray-500 italic">
-                                            No sessions found for this course.
+                                            No sessions found for this course within the selected date range.
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -171,13 +185,21 @@
                 </div>
             </div>
         </div>
+    {% elif request.GET.course %}
+         <div class="bg-white rounded-lg shadow-md p-8 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-1">No data for selected course</h3>
+            <p class="text-gray-500">The selected course might not have students or sessions, or there's no data matching your filters.</p>
+        </div>
     {% else %}
         <div class="bg-white rounded-lg shadow-md p-8 text-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <h3 class="text-lg font-medium text-gray-900 mb-1">Select a course to generate a report</h3>
-            <p class="text-gray-500">Choose a course from the dropdown above to view attendance data.</p>
+            <p class="text-gray-500">Choose a course and apply filters to view attendance data.</p>
         </div>
     {% endif %}
 </div>

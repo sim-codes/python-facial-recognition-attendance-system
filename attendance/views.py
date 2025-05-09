@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.db.models import Count, Q
@@ -9,6 +9,8 @@ import base64
 import io
 import numpy as np
 import face_recognition
+import csv
+from datetime import datetime
 
 from .models import Course, Session, Attendance
 from .forms import SessionForm, CourseForm
@@ -271,48 +273,103 @@ def session_detail(request, session_id):
 @user_passes_test(is_lecturer)
 def attendance_reports(request):
     courses = Course.objects.filter(lecturer=request.user)
-    
-    # If a course is selected, show detailed report
     selected_course = None
+    sessions = Session.objects.none()
+    student_attendance = []
+    course_average_attendance_percentage = 0
+
     course_id = request.GET.get('course')
-    
+    student_query = request.GET.get('student_query')
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+
     if course_id:
         try:
             selected_course = courses.get(id=course_id)
-            sessions = Session.objects.filter(course=selected_course).order_by('-date')
-            students = selected_course.students.all()
+            sessions_query = Session.objects.filter(course=selected_course)
+
+            # Date range filtering for sessions
+            if start_date_str:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                sessions_query = sessions_query.filter(date__gte=start_date)
+            if end_date_str:
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                sessions_query = sessions_query.filter(date__lte=end_date)
             
-            # Calculate attendance rates
-            student_attendance = []
-            for student in students:
-                attended_sessions = Attendance.objects.filter(
+            sessions = sessions_query.order_by('-date', '-start_time')
+
+            # Filter students based on student_query
+            students_query = selected_course.students.all()
+            if student_query:
+                students_query = students_query.filter(
+                    Q(username__icontains=student_query) | 
+                    Q(email__icontains=student_query) | 
+                    Q(first_name__icontains=student_query) | 
+                    Q(last_name__icontains=student_query)
+                )
+            
+            total_sessions_for_course_in_range = sessions.count()
+            total_attended_count_for_course = 0
+            
+            for student in students_query:
+                # Consider only sessions the student is part of for their individual rate
+                # but for overall course average, we use all sessions in range for the selected course.
+                attended_sessions_count = Attendance.objects.filter(
                     student=student,
-                    session__course=selected_course
+                    session__in=sessions # Filter by sessions in the date range
                 ).count()
                 
-                total_sessions = sessions.count()
-                attendance_rate = (attended_sessions / total_sessions * 100) if total_sessions > 0 else 0
+                # The number of sessions a student could have attended is total_sessions_for_course_in_range
+                # if they were enrolled for all of them.
+                # For simplicity, we'll use total_sessions_for_course_in_range for rate calculation here.
+                # A more complex calculation might consider student enrollment dates vs session dates.
+                
+                attendance_rate = (attended_sessions_count / total_sessions_for_course_in_range * 100) if total_sessions_for_course_in_range > 0 else 0
                 
                 student_attendance.append({
                     'student': student,
-                    'attended': attended_sessions,
-                    'total': total_sessions,
+                    'attended': attended_sessions_count,
+                    'total_sessions_for_student': total_sessions_for_course_in_range, # Total sessions in filtered range for this course
                     'rate': attendance_rate,
                 })
-            
+                total_attended_count_for_course += attended_sessions_count
+
+            if students_query.count() > 0 and total_sessions_for_course_in_range > 0:
+                course_average_attendance_percentage = round((total_attended_count_for_course / (students_query.count() * total_sessions_for_course_in_range)) * 100)
+            else:
+                course_average_attendance_percentage = 0
+
+            if 'export_csv' in request.GET:
+                response = HttpResponse(content_type='text/csv')
+                response['Content-Disposition'] = f'attachment; filename="attendance_report_{selected_course.code}_{timezone.now().strftime("%Y%m%d")}.csv"'
+                
+                writer = csv.writer(response)
+                writer.writerow(['Student Name', 'Student Email', 'Sessions Attended', 'Total Sessions in Filter', 'Attendance Rate (%)'])
+                
+                for stat in student_attendance:
+                    writer.writerow([
+                        stat['student'].get_full_name() or stat['student'].username,
+                        stat['student'].email,
+                        stat['attended'],
+                        stat['total_sessions_for_student'],
+                        f"{stat['rate']:.2f}"
+                    ])
+                return response
+
         except Course.DoesNotExist:
-            selected_course = None
-            sessions = []
-            student_attendance = []
-    else:
-        sessions = []
-        student_attendance = []
-    
+            selected_course = None # Handled by template
+        except ValueError: # Handle invalid date format
+            # Optionally, add a message to the user about invalid date format
+            pass
+
+
     context = {
         'courses': courses,
         'selected_course': selected_course,
-        'sessions': sessions,
+        'sessions': sessions, # These are already filtered sessions if a course is selected
         'student_attendance': student_attendance,
+        'course_average_attendance_percentage': course_average_attendance_percentage,
+        'request': request, # Pass request to access GET params in template if needed
     }
     
     return render(request, 'attendance/attendance_reports.html', context)
